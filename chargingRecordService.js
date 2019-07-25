@@ -4,6 +4,27 @@ async function createChargingRecord(req, res, next){
 	let chargingRecord = req.body;
 
 	try{
+		let lastChargingRecord = await chargingRecordCRUDS.getLastChargingRecordForRegistrationNumberHelper(chargingRecord["registrationNumber"]);
+
+		if(lastChargingRecord){
+			let dateTimeMinutes = (chargingRecord["date"].getHours() * 60) + chargingRecord["date"].getMinutes();
+			let startTimeMinutes = await getMinutesFromString(chargingRecord["startTime"]);
+
+			if(startTimeMinutes < dateTimeMinutes){		
+				chargingRecord["sno"] = lastChargingRecord["sno"] + 1;
+			}
+			else{
+				chargingRecord["sno"] = 1;
+			}
+		}
+		else{
+			chargingRecord["sno"] = 1;
+		}
+
+		chargingRecord["startTime"] = chargingRecord["date"].setHours((startTimeMinutes / 60), (startTimeMinutes % 60), 0, 0);
+
+		delete chargingRecord["date"];		
+
 		let savedChargingRecord = await chargingRecordCRUDS.createChargingRecordHelper(chargingRecord);
 
 		res.send({
