@@ -1,0 +1,8 @@
+var mongoose = require("mongoose");
+
+mongoose.connect("mongodb://0.0.0.0:27017/mozevOperations", function(err){
+	if(err){
+		console.log(err);
+	}
+	console.log("connected to db");
+});
