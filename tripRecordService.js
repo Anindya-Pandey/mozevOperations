@@ -68,7 +68,7 @@ async function createTripRecord(req, res, next){
 		let dateTimeMinutes = (tripRecord["date"].getHours() * 60) + tripRecord["date"].getMinutes();
 		let startTimeMinutes = await getMinutesFromString(tripRecord["startTime"]);
 
-		let date = tripRecord["date"];
+		let date = await convertUTCToIST(tripRecord["date"]);
 
 		if(lastTripRecord){
 			if(startTimeMinutes < dateTimeMinutes){		
