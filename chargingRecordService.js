@@ -6,24 +6,32 @@ async function createChargingRecord(req, res, next){
 	try{
 		let lastChargingRecord = await chargingRecordCRUDS.getLastChargingRecordForRegistrationNumberHelper(chargingRecord["registrationNumber"]);
 
-		if(lastChargingRecord){
-			let dateTimeMinutes = (chargingRecord["date"].getHours() * 60) + chargingRecord["date"].getMinutes();
-			let startTimeMinutes = await getMinutesFromString(chargingRecord["startTime"]);
+		let dateTimeMinutes = (chargingRecord["date"].getHours() * 60) + chargingRecord["date"].getMinutes();
+		let startTimeMinutes = await getMinutesFromString(chargingRecord["startTime"]);
 
+		if(lastChargingRecord){
 			if(startTimeMinutes < dateTimeMinutes){		
 				chargingRecord["sno"] = lastChargingRecord["sno"] + 1;
+				chargingRecord["startTime"] = chargingRecord["date"].setHours((startTimeMinutes / 60), (startTimeMinutes % 60), 0, 0);
+
 			}
 			else{
 				chargingRecord["sno"] = 1;
+				chargingRecord["startTime"] = lastChargingRecord["date"].setHours((startTimeMinutes / 60), (startTimeMinutes % 60), 0, 0);
 			}
 		}
 		else{
 			chargingRecord["sno"] = 1;
+
+			if(startTimeMinutes < dateTimeMinutes){
+				chargingRecord["startTime"] = chargingRecord["date"].setHours((startTimeMinutes / 60), (startTimeMinutes % 60), 0, 0);
+
+			}
+			else{
+				let date = new Date(Date.parse(chargingRecord["date"]) - 86400000);
+				chargingRecord["startTime"] = date.setHours((startTimeMinutes / 60), (startTimeMinutes % 60), 0, 0);
+			}
 		}
-
-		chargingRecord["startTime"] = chargingRecord["date"].setHours((startTimeMinutes / 60), (startTimeMinutes % 60), 0, 0);
-
-		delete chargingRecord["date"];		
 
 		let savedChargingRecord = await chargingRecordCRUDS.createChargingRecordHelper(chargingRecord);
 

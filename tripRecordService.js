@@ -55,24 +55,32 @@ async function createTripRecord(req, res, next){
 	try{
 		let lastTripRecord = await tripRecordCRUDS.getLastTripRecordForRegistrationNumberHelper(tripRecord["registrationNumber"]);
 
-		if(lastTripRecord){
-			let dateTimeMinutes = (tripRecord["date"].getHours() * 60) + tripRecord["date"].getMinutes();
-			let startTimeMinutes = await getMinutesFromString(tripRecord["startTime"]);
+		let dateTimeMinutes = (tripRecord["date"].getHours() * 60) + tripRecord["date"].getMinutes();
+		let startTimeMinutes = await getMinutesFromString(tripRecord["startTime"]);
 
+		if(lastTripRecord){
 			if(startTimeMinutes < dateTimeMinutes){		
 				tripRecord["sno"] = lastTripRecord["sno"] + 1;
+				tripRecord["startTime"] = tripRecord["date"].setHours((startTimeMinutes / 60), (startTimeMinutes % 60), 0, 0);
+
 			}
 			else{
 				tripRecord["sno"] = 1;
+				tripRecord["startTime"] = lastTripRecord["date"].setHours((startTimeMinutes / 60), (startTimeMinutes % 60), 0, 0);
 			}
 		}
 		else{
 			tripRecord["sno"] = 1;
+
+			if(startTimeMinutes < dateTimeMinutes){
+				tripRecord["startTime"] = tripRecord["date"].setHours((startTimeMinutes / 60), (startTimeMinutes % 60), 0, 0);
+
+			}
+			else{
+				let date = new Date(Date.parse(tripRecord["date"]) - 86400000);
+				tripRecord["startTime"] = date.setHours((startTimeMinutes / 60), (startTimeMinutes % 60), 0, 0);
+			}
 		}
-
-		tripRecord["startTime"] = tripRecord["date"].setHours((startTimeMinutes / 60), (startTimeMinutes % 60), 0, 0);
-
-		delete tripRecord["date"];		
 
 		let savedTripRecord = await tripRecordCRUDS.createTripRecordHelper(tripRecord);
 
