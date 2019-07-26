@@ -68,10 +68,12 @@ async function createTripRecord(req, res, next){
 		let dateTimeMinutes = (tripRecord["date"].getHours() * 60) + tripRecord["date"].getMinutes();
 		let startTimeMinutes = await getMinutesFromString(tripRecord["startTime"]);
 
+		let date = tripRecord["date"];
+
 		if(lastTripRecord){
 			if(startTimeMinutes < dateTimeMinutes){		
 				tripRecord["sno"] = lastTripRecord["sno"] + 1;
-				tripRecord["startTime"] = tripRecord["date"].setHours((startTimeMinutes / 60), (startTimeMinutes % 60), 0, 0);
+				tripRecord["startTime"] = date.setHours((startTimeMinutes / 60), (startTimeMinutes % 60), 0, 0);
 
 			}
 			else{
@@ -83,12 +85,12 @@ async function createTripRecord(req, res, next){
 			tripRecord["sno"] = 1;
 
 			if(startTimeMinutes < dateTimeMinutes){
-				tripRecord["startTime"] = tripRecord["date"].setHours((startTimeMinutes / 60), (startTimeMinutes % 60), 0, 0);
+				tripRecord["startTime"] = date.setHours((startTimeMinutes / 60), (startTimeMinutes % 60), 0, 0);
 
 			}
 			else{
-				let date = new Date(Date.parse(tripRecord["date"]) - 86400000);
-				tripRecord["startTime"] = date.setHours((startTimeMinutes / 60), (startTimeMinutes % 60), 0, 0);
+				let prevDate = new Date(Date.parse(tripRecord["date"]) - 86400000);
+				tripRecord["startTime"] = prevDate.setHours((startTimeMinutes / 60), (startTimeMinutes % 60), 0, 0);
 			}
 		}
 
