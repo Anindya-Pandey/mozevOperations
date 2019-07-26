@@ -15,7 +15,6 @@ let tripRecordSchema = mongoose.Schema({
 
 let chargingRecordSchema = mongoose.Schema({
 	sno: Number,
-	driver: String,
 	registrationNumber: String,
 	date: Date,
 	startTime: Date,
