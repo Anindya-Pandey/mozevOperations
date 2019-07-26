@@ -53,7 +53,12 @@ async function createTripRecord(req, res, next){
 	let tripRecord = req.body;
 
 	if(!(tripRecord["date"] instanceof Date)){
-		tripRecord["date"] = new Date(tripRecord["date"].toString());
+		try{
+			tripRecord["date"] = await convertUTCToIST(new Date(tripRecord["date"].toString()));			
+		}
+		catch(err){
+			reject("tripRecordService.js: createTripRecord: " + err.toString());
+		}
 	}
 
 	try{

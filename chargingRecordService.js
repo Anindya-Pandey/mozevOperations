@@ -4,7 +4,12 @@ async function createChargingRecord(req, res, next){
 	let chargingRecord = req.body;
 
 	if(!(chargingRecord["date"] instanceof Date)){
-		chargingRecord["date"] = new Date(chargingRecord["date"].toString());
+		try{
+			chargingRecord["date"] = await convertUTCToIST(new Date(chargingRecord["date"].toString()));			
+		}
+		catch(err){
+			reject("chargingRecordService.js: createChargingRecord: " + err.toString());
+		}
 	}
 	
 	try{
