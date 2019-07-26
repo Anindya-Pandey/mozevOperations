@@ -52,6 +52,10 @@ async function getMinutesFromString(time){
 async function createTripRecord(req, res, next){
 	let tripRecord = req.body;
 
+	if(!(tripRecord["date"] instanceof Date)){
+		tripRecord["date"] = new Date(tripRecord["date"].toString());
+	}
+
 	try{
 		let lastTripRecord = await tripRecordCRUDS.getLastTripRecordForRegistrationNumberHelper(tripRecord["registrationNumber"]);
 

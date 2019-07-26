@@ -3,6 +3,10 @@ let chargingRecordCRUDS = require("./chargingRecordCRUDS.js");
 async function createChargingRecord(req, res, next){
 	let chargingRecord = req.body;
 
+	if(!(chargingRecord["date"] instanceof Date)){
+		chargingRecord["date"] = new Date(chargingRecord["date"].toString());
+	}
+	
 	try{
 		let lastChargingRecord = await chargingRecordCRUDS.getLastChargingRecordForRegistrationNumberHelper(chargingRecord["registrationNumber"]);
 
