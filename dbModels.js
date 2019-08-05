@@ -4,8 +4,8 @@ let tripRecordSchema = mongoose.Schema({
 	sno: Number,
 	driver: String,
 	registrationNumber: String,
-	startTime: Date,
-	date: Date,
+	startDate: Date,
+	recordDate: Date,
 	km: Number,
 	soc: Number,
 	nopAtPTC: Number,
@@ -16,9 +16,9 @@ let tripRecordSchema = mongoose.Schema({
 let chargingRecordSchema = mongoose.Schema({
 	sno: Number,
 	registrationNumber: String,
-	date: Date,
-	startTime: Date,
-	endTime: Date,
+	startDate: Date,
+	endDate: Date,
+	recordDate: Date,
 	power: Number,
 	startSoc: Number,
 	endSoc: Number

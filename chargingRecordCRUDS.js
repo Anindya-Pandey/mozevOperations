@@ -20,7 +20,7 @@ function createChargingRecordHelper(chargingRecord){
 
 function getLastChargingRecordForRegistrationNumberHelper(registrationNumber){
 	let responsePromise = new Promise(function(resolve, reject){
-		dbModels.chargingRecordModel.findOne({registrationNumber: registrationNumber}, null, {sort: {startTime: -1}}, function(err, chargingRecord){
+		dbModels.chargingRecordModel.findOne({registrationNumber: registrationNumber}, null, {sort: {startDate: -1}}, function(err, chargingRecord){
 			if(err){
 				reject("chargingRecordCRUDS.js: getLastChargingRecordForRegistrationNumberHelper: " + err.toString());				
 			}

@@ -52,55 +52,48 @@ async function getMinutesFromString(time){
 async function createTripRecord(req, res, next){
 	let tripRecord = req.body;
 
-	if(!(tripRecord["date"] instanceof Date)){
-		try{
-			tripRecord["date"] = await convertUTCToIST(new Date(tripRecord["date"].toString()));
-			console.log(tripRecord["date"]);			
-		}
-		catch(err){
-			reject("tripRecordService.js: createTripRecord: " + err.toString());
-		}
-	}
-
 	try{
-		let lastTripRecord = await tripRecordCRUDS.getLastTripRecordForRegistrationNumberHelper(tripRecord["registrationNumber"]);
+		if(Date.parse(tripRecord["startDate"]) >= Date.parse(tripRecord["recordDate"])){
+			res.send({
+				message: "tripRecordService.js: createTripRecord:",
+				error: "Start Time should be before Record Time"
+			});
+			res.end();
+		}
+		else{
+			let lastTripRecord = await tripRecordCRUDS.getLastTripRecordForRegistrationNumberHelper(tripRecord["registrationNumber"]);
 
-		let dateTimeMinutes = (tripRecord["date"].getHours() * 60) + tripRecord["date"].getMinutes();
-		let startTimeMinutes = await getMinutesFromString(tripRecord["startTime"]);
-
-		let date = await convertUTCToIST(tripRecord["date"]);
-
-		if(lastTripRecord){
-			if(startTimeMinutes < dateTimeMinutes){		
-				tripRecord["sno"] = lastTripRecord["sno"] + 1;
-				tripRecord["startTime"] = date.setHours((startTimeMinutes / 60), (startTimeMinutes % 60), 0, 0);
-
+			if(lastTripRecord){
+				if(Date.parse(tripRecord["startDate"]) <= Date.parse(lastTripRecord["recordDate"])){
+					res.send({
+						message: "tripRecordService.js: createTripRecord:",
+						error: "Start Time should be after Record Time of last trip record"
+					});
+					res.end();
+				}
+				else if(
+					tripRecord["startDate"].getDate() != lastTripRecord["startDate"].getDate() ||
+					tripRecord["startDate"].getMonth() != lastTripRecord["startDate"].getMonth() ||
+					tripRecord["startDate"].getFullYear() != lastTripRecord["startDate"].getFullYear()
+				){
+					tripRecord["sno"] = 1;
+				}
+				else{
+					tripRecord["sno"] = lastTripRecord["sno"] + 1;
+				}
 			}
 			else{
 				tripRecord["sno"] = 1;
-				tripRecord["startTime"] = lastTripRecord["date"].setHours((startTimeMinutes / 60), (startTimeMinutes % 60), 0, 0);
 			}
+
+			let savedTripRecord = await tripRecordCRUDS.createTripRecordHelper(tripRecord);
+
+			res.send({
+				message: "tripRecordService.js: createTripRecord:",
+				savedTripRecord: savedTripRecord
+			});
+			res.end();
 		}
-		else{
-			tripRecord["sno"] = 1;
-
-			if(startTimeMinutes < dateTimeMinutes){
-				tripRecord["startTime"] = date.setHours((startTimeMinutes / 60), (startTimeMinutes % 60), 0, 0);
-
-			}
-			else{
-				let prevDate = new Date(Date.parse(tripRecord["date"]) - 86400000);
-				tripRecord["startTime"] = prevDate.setHours((startTimeMinutes / 60), (startTimeMinutes % 60), 0, 0);
-			}
-		}
-
-		let savedTripRecord = await tripRecordCRUDS.createTripRecordHelper(tripRecord);
-
-		res.send({
-			message: "tripRecordService.js: createTripRecord:",
-			savedTripRecord: savedTripRecord
-		});
-		res.end();
 	}
 	catch(err){
 		res.send({

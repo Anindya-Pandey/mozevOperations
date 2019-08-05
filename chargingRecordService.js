@@ -52,64 +52,52 @@ async function getMinutesFromString(time){
 async function createChargingRecord(req, res, next){
 	let chargingRecord = req.body;
 
-	if(!(chargingRecord["date"] instanceof Date)){
-		try{
-			chargingRecord["date"] = await convertUTCToIST(new Date(chargingRecord["date"].toString()));
-			console.log(chargingRecord["date"]);			
-		}
-		catch(err){
-			reject("chargingRecordService.js: createChargingRecord: " + err.toString());
-		}
-	}
-
 	try{
-		let lastChargingRecord = await chargingRecordCRUDS.getLastChargingRecordForRegistrationNumberHelper(chargingRecord["registrationNumber"]);
+		if(
+			Date.parse(chargingRecord["startDate"]) >= Date.parse(chargingRecord["recordDate"]) ||
+			Date.parse(chargingRecord["endDate"]) >= Date.parse(chargingRecord["recordDate"]) ||
+			Date.parse(chargingRecord["startDate"]) >= Date.parse(chargingRecord["endDate"])
+		){
+			res.send({
+				message: "chargingRecordService.js: createChargingRecord:",
+				error: "Charging start time should be before charging end time and both should be before charging end time"
+			});
+			res.end();
+		}
+		else{
+			let lastChargingRecord = await chargingRecordCRUDS.getLastChargingRecordForRegistrationNumberHelper(chargingRecord["registrationNumber"]);
 
-		let dateTimeMinutes = (chargingRecord["date"].getHours() * 60) + chargingRecord["date"].getMinutes();
-		let startTimeMinutes = await getMinutesFromString(chargingRecord["startTime"]);
-		let endTimeMinutes = await getMinutesFromString(chargingRecord["endTime"]);
-
-		let date = await convertUTCToIST(chargingRecord["date"]);
-
-		if(lastChargingRecord){
-			if(startTimeMinutes < dateTimeMinutes){
-				chargingRecord["sno"] = lastChargingRecord["sno"] + 1;
-				chargingRecord["startTime"] = date.setHours((startTimeMinutes / 60), (startTimeMinutes % 60), 0, 0);
-				chargingRecord["endTime"] = date.setHours((endTimeMinutes / 60), (endTimeMinutes % 60), 0, 0);
+			if(lastChargingRecord){
+				if(Date.parse(chargingRecord["startDate"]) <= Date.parse(lastChargingRecord["recordDate"])){
+					res.send({
+						message: "chargingRecordService.js: createChargingRecord:",
+						error: "Start Time should be after Record Time of last charging record"
+					});
+					res.end();
+				}
+				else if(
+					chargingRecord["startDate"].getDate() != lastChargingRecord["startDate"].getDate() ||
+					chargingRecord["startDate"].getMonth() != lastChargingRecord["startDate"].getMonth() ||
+					chargingRecord["startDate"].getFullYear() != lastChargingRecord["startDate"].getFullYear()
+				){
+					chargingRecord["sno"] = 1;
+				}
+				else{
+					chargingRecord["sno"] = lastChargingRecord["sno"] + 1;
+				}
 			}
 			else{
 				chargingRecord["sno"] = 1;
-				chargingRecord["startTime"] = lastChargingRecord["date"].setHours((startTimeMinutes / 60), (startTimeMinutes % 60), 0, 0);
-				chargingRecord["endTime"] = date.setHours((endTimeMinutes / 60), (endTimeMinutes % 60), 0, 0);				
 			}
+
+			let savedChargingRecord = await chargingRecordCRUDS.createChargingRecordHelper(chargingRecord);
+
+			res.send({
+				message: "chargingRecordService.js: createChargingRecord:",
+				savedChargingRecord: savedChargingRecord
+			});
+			res.end();
 		}
-		else{
-			chargingRecord["sno"] = 1;
-
-			if(startTimeMinutes < dateTimeMinutes){
-				chargingRecord["startTime"] = date.setHours((startTimeMinutes / 60), (startTimeMinutes % 60), 0, 0);
-				chargingRecord["endTime"] = date.setHours((endTimeMinutes / 60), (endTimeMinutes % 60), 0, 0);
-			}
-			else{
-				let prevDate = new Date(Date.parse(chargingRecord["date"]) - 86400000);
-				chargingRecord["startTime"] = prevDate.setHours((startTimeMinutes / 60), (startTimeMinutes % 60), 0, 0);
-
-				if(endTimeMinutes < startTimeMinutes){
-					chargingRecord["endTime"] = date.setHours((endTimeMinutes / 60), (endTimeMinutes % 60), 0, 0);					
-				}
-				else{
-					chargingRecord["endTime"] = prevDate.setHours((endTimeMinutes / 60), (endTimeMinutes % 60), 0, 0);					
-				}
-			}
-		}
-
-		let savedChargingRecord = await chargingRecordCRUDS.createChargingRecordHelper(chargingRecord);
-
-		res.send({
-			message: "chargingRecordService.js: createChargingRecord:",
-			savedChargingRecord: savedChargingRecord
-		});
-		res.end();
 	}
 	catch(err){
 		res.send({

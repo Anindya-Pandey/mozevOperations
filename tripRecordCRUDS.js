@@ -20,7 +20,7 @@ function createTripRecordHelper(tripRecord){
 
 function getLastTripRecordForRegistrationNumberHelper(registrationNumber){
 	let responsePromise = new Promise(function(resolve, reject){
-		dbModels.tripRecordModel.findOne({registrationNumber: registrationNumber}, null, {sort: {startTime: -1}}, function(err, tripRecord){
+		dbModels.tripRecordModel.findOne({registrationNumber: registrationNumber}, null, {sort: {startDate: -1}}, function(err, tripRecord){
 			if(err){
 				reject("tripRecordCRUDS.js: getLastTripRecordForRegistrationNumberHelper: " + err.toString());				
 			}
