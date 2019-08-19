@@ -52,6 +52,10 @@ async function getMinutesFromString(time){
 async function createChargingRecord(req, res, next){
 	let chargingRecord = req.body;
 
+	chargingRecord["startDate"] = new Date(chargingRecord["startDate"]);
+	chargingRecord["endDate"] = new Date(chargingRecord["endDate"]);
+	chargingRecord["recordDate"] = new Date(chargingRecord["recordDate"]);
+
 	try{
 		if(
 			Date.parse(chargingRecord["startDate"]) >= Date.parse(chargingRecord["recordDate"]) ||
