@@ -52,8 +52,9 @@ async function getMinutesFromString(time){
 async function createTripRecord(req, res, next){
 	let tripRecord = req.body;
 
-	console.log(tripRecord["startDate"])
-	console.log(tripRecord["startDate"].getDate())
+	console.log(tripRecord["startDate"]);
+	sd = new Date(tripRecord["startDate"]);
+	console.log(sd.getDate())
 
 	try{
 		if(Date.parse(tripRecord["startDate"]) >= Date.parse(tripRecord["recordDate"])){
