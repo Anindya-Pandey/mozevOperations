@@ -53,6 +53,7 @@ async function createTripRecord(req, res, next){
 	let tripRecord = req.body;
 
 	console.log(tripRecord["startDate"])
+	console.log(tripRecord["startDate"].getDate())
 
 	try{
 		if(Date.parse(tripRecord["startDate"]) >= Date.parse(tripRecord["recordDate"])){
